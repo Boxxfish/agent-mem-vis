@@ -51,7 +51,7 @@
 	</canvas>
 	<input type="range" min="0" max={numFrames - 1} bind:value={frame} />
 </div>
-<button on:click={playPressed}>{on ? 'Pause' : 'Play'}</button>
+<button on:click={playPressed} disabled={episodeData === undefined}>{on ? 'Pause' : 'Play'}</button>
 
 <style>
 	.game-viewer {

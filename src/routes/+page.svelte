@@ -1,14 +1,29 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 	import GameViewer from './GameViewer.svelte';
 	import type { EpisodeData } from './Episode';
 
-	let episodeData: undefined | EpisodeData;
+	interface Index {
+		episodes: string[];
+	}
 
-	onMount(() => {
-		fetch('./data/mf_base/episodes/0.json')
-			.then((data) => data.json())
-			.then((data) => (episodeData = data));
+	let index: undefined | Index;
+	let episodeName: undefined | string = undefined;
+	let episodeDatas: Map<string, EpisodeData> = new Map();
+	$: episodeData = episodeName !== undefined ? episodeDatas.get(episodeName) : undefined;
+
+	onMount(async () => {
+		index = await fetch('./data/mf_base/index.json').then((data) => data.json());
+		if (index) {
+			for (const episodeName of index.episodes) {
+				const episodeData = await fetch(
+					`./data/mf_base/episodes/${episodeName}.json`
+				).then((data) => data.json());
+				episodeDatas.set(episodeName, episodeData);
+			}
+			episodeName = index.episodes[0];
+		}
 	});
 </script>
 
@@ -16,8 +31,16 @@
 	<title>Agent Memory Visualizer</title>
 </svelte:head>
 
-<GameViewer episodeData={episodeData}/>
+<label for="episodeSelect">Episode:</label>
+<select name="episodeSelect" bind:value={episodeName}>
+	{#if index}
+		{#each index.episodes as episodeName}
+			<option value={episodeName}>{episodeName}</option>
+		{/each}
+	{/if}
+</select>
+<GameViewer {episodeData} />
 
 <style>
-	@import "../global.css";
+	@import '../global.scss';
 </style>
