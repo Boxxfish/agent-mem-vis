@@ -6,7 +6,7 @@
 	let gameHeight = 32;
 
 	let on = false;
-	let frame = 0;
+	export let frame = 0;
 	let playHandle: undefined | number;
 	export let episodeData: undefined | EpisodeData;
 	let canvas: undefined | HTMLCanvasElement;
@@ -50,14 +50,15 @@
 		Javascript must be enabled.
 	</canvas>
 	<input type="range" min="0" max={numFrames - 1} bind:value={frame} />
+	<button on:click={playPressed} disabled={episodeData === undefined}>{on ? 'Pause' : 'Play'}</button>
 </div>
-<button on:click={playPressed} disabled={episodeData === undefined}>{on ? 'Pause' : 'Play'}</button>
 
 <style>
 	.game-viewer {
 		display: flex;
 		flex-direction: column;
 		width: 40rem;
+		margin: 2rem;
 	}
 	.game-canvas {
 		background-color: gray;
