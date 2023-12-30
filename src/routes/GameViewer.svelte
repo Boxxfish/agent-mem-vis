@@ -58,7 +58,6 @@
 		display: flex;
 		flex-direction: column;
 		width: 40rem;
-		margin: 2rem;
 	}
 	.game-canvas {
 		background-color: gray;

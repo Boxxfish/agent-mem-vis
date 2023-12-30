@@ -14,6 +14,11 @@
 	let episodeDatas: Map<string, EpisodeData> = new Map();
 	$: episodeData = episodeName !== undefined ? episodeDatas.get(episodeName) : undefined;
 	let matchEpisodeData: undefined | EpisodeData;
+	let matchFrame = 0;
+	let matchIdx = 0;
+	$: selectedMatch = episodeData?.matches[frame][matchIdx];
+	$: matchEpisodeData = selectedMatch ? episodeDatas.get(selectedMatch.episode) : undefined;
+	$: matchFrame = selectedMatch ? selectedMatch?.start : 0;
 
 	onMount(async () => {
 		index = await fetch('./data/mf_base/index.json').then((data) => data.json());
@@ -34,30 +39,44 @@
 </svelte:head>
 
 <div class="main-wrapper">
+	<div class="episode-selector">
+		<label for="episodeSelect">Episode:</label>
+		<select name="episodeSelect" bind:value={episodeName}>
+			{#if index}
+				{#each index.episodes as episodeName}
+					<option value={episodeName}>{episodeName}</option>
+				{/each}
+			{/if}
+		</select>
+	</div>
 	<div class="game-viewers">
-		<div class="episode-selector">
-			<label for="episodeSelect">Episode:</label>
-			<select name="episodeSelect" bind:value={episodeName}>
-				{#if index}
-					{#each index.episodes as episodeName}
-						<option value={episodeName}>{episodeName}</option>
-					{/each}
-				{/if}
-			</select>
+		<div class="game-wrapper">
+			<h3>Current Episode</h3>
+			<GameViewer {episodeData} bind:frame />
 		</div>
-		<GameViewer {episodeData} bind:frame />
-		<GameViewer episodeData={matchEpisodeData} />
+		<div class="game-wrapper">
+			<h3>Retrieved Episode</h3>
+			<GameViewer episodeData={matchEpisodeData} bind:frame={matchFrame} />
+		</div>
 	</div>
 	<div class="divider" />
 	<div class="matches">
+		<h3>Best Matches</h3>
 		{#if episodeData && episodeData.matches}
 			<ol>
 				{#each episodeData.matches[frame] as match, i}
 					<li>
-						{match.score.toFixed(2)}
-						<button on:click={() => (matchEpisodeData = episodeDatas.get(match.episode))}
-							>Play</button
-						>
+						<div class="match-listing {i == matchIdx ? 'selected' : ''}">
+							<button
+								on:click={() => {
+									matchIdx = i;
+								}}
+								disabled={i == matchIdx}>View</button
+							>
+							<span/>
+							<span>Score: {match.score.toFixed(2)}</span> <span>Episode {match.episode}</span>
+							<span>Frame: {match.start}</span>
+						</div>
 					</li>
 				{/each}
 			</ol>
@@ -65,7 +84,7 @@
 	</div>
 </div>
 
-<style>
+<style lang="scss">
 	@import '../global.scss';
 
 	.main-wrapper {
@@ -94,5 +113,22 @@
 
 	.episode-selector {
 		display: block;
+	}
+
+	.game-wrapper {
+		margin: 0rem 1rem;
+	}
+
+	.match-listing {
+		display: grid;
+		width: 100%;
+		background-color: #efefef;
+		grid-template-columns: max-content 2rem 10rem 10rem 10rem;
+		padding: 1rem;
+		margin: 0.1rem;
+
+		&.selected {
+			background-color: #b7b7b7;
+		}
 	}
 </style>
